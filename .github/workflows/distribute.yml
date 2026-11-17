@@ -48,10 +48,10 @@ jobs:
         mkdir -p distribution-output
         git archive --format=zip --prefix=mysite/ --output=distribution-output/mysite-source.zip "$GITHUB_SHA"
       shell: bash
-    - name: Check the static site entry
-      run: python -c "from pathlib import Path; from html.parser import HTMLParser; p=Path('index.html'); assert p.stat().st_size; HTMLParser().feed(p.read_text())"
+    - name: Check tracked site source (currently an empty placeholder)
+      run: python -c "from pathlib import Path; from html.parser import HTMLParser; p=Path('index.html'); assert p.is_file(); HTMLParser().feed(p.read_text()); print('Empty site placeholder; distributing source only' if not p.stat().st_size else 'HTML source parsed')"
     - name: Archive static website
-      run: git archive --format=zip --output=distribution-output/mysite-site.zip "$GITHUB_SHA"
+      run: git archive --format=zip --output=distribution-output/mysite-source.zip "$GITHUB_SHA"
     - name: Validate publisher
       run: python -m unittest discover -s .github/distribution -p "test_*.py" -v
     - name: Publish verified distribution directly to Releases
@@ -59,8 +59,8 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         DISTRIBUTION_BRANCH: ${{ github.event.repository.default_branch }}
-        DISTRIBUTION_QUALIFICATION: Static HTML parsing and a tracked site archive.
-      run: python .github/distribution/publish_distribution.py --directory distribution-output --portable-glob "mysite-site.zip" --alias mysite-site.zip
+        DISTRIBUTION_QUALIFICATION: "Source snapshot only: index.html is currently an empty placeholder. This does not deploy a website."
+      run: python .github/distribution/publish_distribution.py --directory distribution-output --portable-glob "mysite-source.zip" --alias mysite-source.zip
     if: github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
